@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAOCO PERFUMES — Asistente Virtual</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Dark theme (default) */
+      --gold:      #C9A96E;
+      --gold-light:#E8D5B0;
+      --gold-dark: #9C7A47;
+      --bg-base:   #0E0E0E;
+      --bg-card:   #1A1A1A;
+      --bg-deep:   #141414;
+      --bg-smoke:  #2A2A2A;
+      --bg-mist:   #3A3A3A;
+      --text-main: #F5F0E8;
+      --text-sub:  #8A8A8A;
+      --border:    rgba(201,169,110,0.15);
+      --border-focus: rgba(201,169,110,0.5);
+      --bubble-bot-bg: #2A2A2A;
+      --bubble-bot-border: rgba(201,169,110,0.08);
+      --bubble-bot-text: #F5F0E8;
+      --header-bg: rgba(14,14,14,0.98);
+      --input-area-bg: rgba(14,14,14,0.98);
+      --input-wrapper-bg: #1A1A1A;
+      --avatar-overlay: rgba(30,20,10,0.4);
+      --config-bg: #1A1A1A;
+      --config-field-bg: #2A2A2A;
+      --font-display: 'Cormorant Garamond', serif;
+      --font-body:    'Jost', sans-serif;
+      --radius:    16px;
+      --radius-sm: 10px;
+      --shadow:    0 24px 64px rgba(0,0,0,0.5);
+      --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ── LIGHT THEME ── */
+    html.light {
+      --bg-base:   #F7F3EE;
+      --bg-card:   #FFFFFF;
+      --bg-deep:   #EDE7DC;
+      --bg-smoke:  #F0EBE3;
+      --bg-mist:   #D8D0C4;
+      --text-main: #1A1410;
+      --text-sub:  #6B5F52;
+      --border:    rgba(156,122,71,0.2);
+      --border-focus: rgba(156,122,71,0.5);
+      --bubble-bot-bg: #FFFFFF;
+      --bubble-bot-border: rgba(156,122,71,0.15);
+      --bubble-bot-text: #1A1410;
+      --header-bg: rgba(247,243,238,0.98);
+      --input-area-bg: rgba(247,243,238,0.98);
+      --input-wrapper-bg: #FFFFFF;
+      --avatar-overlay: rgba(245,235,220,0.4);
+      --config-bg: #FFFFFF;
+      --config-field-bg: #F7F3EE;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-base);
+      font-family: var(--font-body);
+      color: var(--text-main);
+      overflow: hidden;
+      transition: background 0.35s, color 0.35s;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(201,169,110,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 90%, rgba(201,169,110,0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #app {
+      position: relative;
+      z-index: 1;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── HEADER ── */
+    #header {
+      flex-shrink: 0;
+      padding: 20px 24px 16px;
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      backdrop-filter: blur(20px);
+      position: relative;
+      transition: background 0.35s, border-color 0.35s;
+    }
+
+    #header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 24px; right: 24px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0.4;
+    }
+
+    .bot-avatar-header {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 0 20px rgba(201,169,110,0.3);
+      position: relative;
+    }
+
+    .bot-avatar-header::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      border: 1px solid rgba(201,169,110,0.4);
+    }
+
+    .online-dot {
+      position: absolute;
+      bottom: 2px; right: 2px;
+      width: 10px; height: 10px;
+      background: #4CAF50;
+      border-radius: 50%;
+      border: 2px solid var(--bg-base);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.85); }
+    }
+
+    .header-info { flex: 1; }
+
+    .header-brand {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--gold-light);
+      line-height: 1;
+    }
+
+    html.light .header-brand { color: var(--gold-dark); }
+
+    .header-status {
+      font-size: 11px;
+      color: var(--text-sub);
+      letter-spacing: 0.06em;
+      margin-top: 3px;
+      font-weight: 300;
+    }
+
+    /* ── HEADER ACTIONS (theme + config) ── */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Theme toggle button */
+    #theme-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text-sub);
+      padding: 6px 8px;
+      border-radius: 20px;
+      opacity: 0.7;
+      transition: opacity var(--transition), background var(--transition), border-color var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-body);
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    #theme-btn:hover { opacity: 1; background: rgba(201,169,110,0.08); }
+
+    #theme-btn .theme-icon { font-size: 14px; line-height: 1; }
+    #theme-btn .theme-label { display: none; }
+
+    @media (min-width: 360px) {
+      #theme-btn .theme-label { display: inline; }
+    }
+
+    #config-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-sub);
+      padding: 6px;
+      opacity: 0.5;
+      transition: opacity var(--transition);
+      display: flex;
+      align-items: center;
+    }
+
+    #config-btn:hover { opacity: 0.9; }
+
+    /* ── MESSAGES ── */
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      scroll-behavior: smooth;
+    }
+
+    #messages::-webkit-scrollbar { width: 3px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.3); border-radius: 10px; }
+
+    .msg-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      animation: fadeSlideIn 0.35s ease forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-row.user { flex-direction: row-reverse; }
+    .msg-row.bot  { flex-direction: row; }
+    .msg-row + .msg-row.user  { margin-top: 6px; }
+    .msg-row + .msg-row.bot   { margin-top: 4px; }
+    .msg-row.user + .msg-row.bot { margin-top: 12px; }
+    .msg-row.bot + .msg-row.user { margin-top: 12px; }
+
+    .bot-avatar-msg {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+      margin-bottom: 2px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .msg-row.first-of-group .bot-avatar-msg { opacity: 1; }
+    .msg-row.user .bot-avatar-msg { display: none; }
+
+    .bubble {
+      max-width: 82%;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      line-height: 1.6;
+      position: relative;
+      word-break: break-word;
+      transition: background 0.35s, border-color 0.35s, color 0.35s;
+    }
+
+    .bubble.bot {
+      background: var(--bubble-bot-bg);
+      color: var(--bubble-bot-text);
+      border-bottom-left-radius: 4px;
+      border: 1px solid var(--bubble-bot-border);
+    }
+
+    .bubble.user {
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: #0E0E0E;
+      border-bottom-right-radius: 4px;
+      font-weight: 500;
+    }
+
+    .bubble.special {
+      background: linear-gradient(135deg, rgba(201,169,110,0.12), rgba(201,169,110,0.06));
+      border: 1px solid rgba(201,169,110,0.25);
+    }
+
+    html.light .bubble.special {
+      background: linear-gradient(135deg, rgba(156,122,71,0.1), rgba(156,122,71,0.04));
+    }
+
+    .bubble .timestamp {
+      display: block;
+      font-size: 10px;
+      opacity: 0.45;
+      margin-top: 4px;
+      letter-spacing: 0.04em;
+      font-weight: 300;
+    }
+
+    .bubble.user .timestamp { text-align: right; }
+    .bubble pre, .bubble p { white-space: pre-wrap; }
+
+    .bubble a {
+      color: var(--gold);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    /* ── TYPING ── */
+    #typing-indicator {
+      display: none;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 0 16px 4px;
+      animation: fadeSlideIn 0.2s ease forwards;
+    }
+
+    #typing-indicator.visible { display: flex; }
+
+    .typing-avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .typing-bubble {
+      background: var(--bubble-bot-bg);
+      border: 1px solid var(--bubble-bot-border);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      border-bottom-left-radius: 4px;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      transition: background 0.35s;
+    }
+
+    .typing-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+      opacity: 0.4;
+      animation: typingBounce 1.2s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+      40%            { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* ── IMAGE BUBBLE ── */
+    .bubble-image {
+      max-width: 240px;
+      width: 100%;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 2px;
+    }
+
+    .bubble-image img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+      max-height: 200px;
+    }
+
+    /* ── INPUT AREA ── */
+    #input-area {
+      flex-shrink: 0;
+      padding: 12px 16px 20px;
+      background: var(--input-area-bg);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      transition: background 0.35s, border-color 0.35s;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      background: var(--input-wrapper-bg);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 8px 8px 8px 18px;
+      transition: border-color var(--transition), box-shadow var(--transition), background 0.35s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(201,169,110,0.07);
+    }
+
+    #user-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.5;
+      resize: none;
+      max-height: 100px;
+      min-height: 24px;
+      overflow-y: auto;
+      padding: 2px 0;
+      transition: color 0.35s;
+    }
+
+    #user-input::placeholder { color: var(--text-sub); opacity: 0.6; }
+
+    #send-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+      color: var(--bg-base);
+    }
+
+    #send-btn:hover  { transform: scale(1.08); box-shadow: 0 4px 16px rgba(201,169,110,0.4); }
+    #send-btn:active { transform: scale(0.95); }
+    #send-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #send-btn svg { width: 18px; height: 18px; fill: #0E0E0E; }
+
+    .input-hint {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-top: 7px;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── QUICK REPLIES ── */
+    #quick-replies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      padding: 0 16px 10px;
+    }
+
+    .chip {
+      background: rgba(201,169,110,0.08);
+      border: 1px solid rgba(201,169,110,0.25);
+      color: var(--gold-light);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 400;
+      padding: 5px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background var(--transition), transform var(--transition);
+      letter-spacing: 0.04em;
+    }
+
+    html.light .chip { color: var(--gold-dark); }
+    .chip:hover { background: rgba(201,169,110,0.18); transform: translateY(-1px); }
+
+    /* ── LOADING OVERLAY ── */
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-base);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: opacity 0.5s;
+    }
+
+    #loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .loader-brand {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .loader-sub {
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--text-sub);
+      opacity: 0.6;
+      margin-bottom: 40px;
+    }
+
+    .loader-bar {
+      width: 140px;
+      height: 1px;
+      background: var(--bg-mist);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .loader-progress {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+      animation: loadProgress 1.6s ease forwards;
+    }
+
+    @keyframes loadProgress {
+      from { width: 0; }
+      to   { width: 100%; }
+    }
+
+    /* ── CONFIG PANEL (simplified) ── */
+    #config-panel {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 50;
+      backdrop-filter: blur(4px);
+      align-items: flex-end;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    #config-panel.open { display: flex; }
+
+    .config-sheet {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--config-bg);
+      border-top: 1px solid var(--border);
+      border-radius: 24px 24px 0 0;
+      padding: 24px 24px 40px;
+      animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
+      transition: background 0.35s;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+
+    .config-handle {
+      width: 40px; height: 4px;
+      background: var(--bg-mist);
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+
+    .config-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--gold-light);
+      margin-bottom: 8px;
+      letter-spacing: 0.08em;
+    }
+
+    html.light .config-title { color: var(--gold-dark); }
+
+    .config-subtitle {
+      font-size: 16px;
+      color: var(--text-sub);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .config-clear-btn {
+      width: 100%;
+      padding: 13px;
+      background: transparent;
+      border: 1px solid rgba(220,80,80,0.35);
+      border-radius: var(--radius-sm);
+      color: #E57373;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .config-clear-btn:hover {
+      background: rgba(220,80,80,0.08);
+      border-color: rgba(220,80,80,0.6);
+    }
+
+    .config-close-btn {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-sub);
+      font-family: var(--font-body);
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background var(--transition);
+    }
+
+    .config-close-btn:hover { background: rgba(201,169,110,0.06); }
+
+    /* ── WA BUTTON ── */
+    .wa-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: linear-gradient(135deg, #1DA851, #25D366);
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 11px 20px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      margin-top: 8px;
+      text-decoration: none;
+      transition: transform var(--transition), box-shadow var(--transition);
+      box-shadow: 0 4px 20px rgba(37,211,102,0.35);
+    }
+
+    .wa-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(37,211,102,0.45); }
+    .wa-btn svg { width: 20px; height: 20px; fill: #fff; flex-shrink: 0; }
+
+    /* ── RESPONSIVE ── */
+    @media (min-width: 481px) {
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      #app {
+        height: 90dvh;
+        max-height: 820px;
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(201,169,110,0.12);
+        overflow: hidden;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="loader-brand">SAOCO</div>
+  <div class="loader-sub">PERFUMES</div>
+  <div class="loader-bar"><div class="loader-progress"></div></div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div class="bot-avatar-header">
+      <span class="online-dot"></span>
+    </div>
+    <div class="header-info">
+      <div class="header-brand">SAOCO PERFUMES</div>
+      <div class="header-status">Asistente Virtual • En línea</div>
+    </div>
+
+    <div class="header-actions">
+      <!-- THEME TOGGLE -->
+      <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema">
+        <span class="theme-icon" id="theme-icon">☀️</span>
+        <span class="theme-label" id="theme-label">Día</span>
+      </button>
+
+      <!-- CONFIG -->
+      <button id="config-btn" title="Configuración" onclick="openConfig()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.92c.04-.34.07-.69.07-1.08 0-.39-.03-.74-.07-1.08l2.32-1.82c.21-.16.27-.46.13-.7l-2.2-3.81c-.14-.24-.42-.32-.66-.24l-2.74 1.1c-.57-.44-1.17-.8-1.84-1.07L14 2.42C13.96 2.17 13.72 2 13.44 2h-4.38c-.28 0-.52.17-.56.42L8.12 5.07C7.45 5.34 6.85 5.7 6.28 6.14L3.54 5.04c-.24-.08-.52 0-.66.24L.68 9.09c-.14.24-.08.54.13.7l2.32 1.82C3.09 11.96 3.06 12.31 3.06 12.7c0 .39.03.74.07 1.08L.81 15.6c-.21.16-.27.46-.13.7l2.2 3.81c.14.24.42.32.66.24l2.74-1.1c.57.44 1.17.8 1.84 1.07l.38 2.65c.04.25.28.42.56.42h4.38c.28 0 .52-.17.56-.42l.38-2.65c.67-.27 1.27-.63 1.84-1.07l2.74 1.1c.24.08.52 0 .66-.24l2.2-3.81c.14-.24.08-.54-.13-.7l-2.32-1.82z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div id="messages"></div>
+
+  <!-- TYPING INDICATOR -->
+  <div id="typing-indicator">
+    <div class="typing-avatar">
+      <img id="typing-logo" src="" alt="Logo"
+          style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+    </div>
+    <div class="typing-bubble">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+  </div>
+
+  <!-- QUICK REPLIES -->
+  <div id="quick-replies"></div>
+
+  <!-- INPUT AREA -->
+  <div id="input-area">
+    <div class="input-wrapper">
+      <textarea
+        id="user-input"
+        placeholder="Escribe tu mensaje o un número..."
+        rows="1"
+        autocomplete="off"
+        spellcheck="false"
+      ></textarea>
+      <button id="send-btn" onclick="sendMessage()" title="Enviar">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <div class="input-hint">Escribe un número o "menú" para volver</div>
+  </div>
+
+</div>
+
+<!-- CONFIG PANEL (simplified) -->
+<div id="config-panel" onclick="closeConfigOnBg(event)">
+  <div class="config-sheet">
+    <div class="config-handle"></div>
+    <div class="config-title">⚙ Opciones</div>
+    <div class="config-subtitle">
+      Aquí puedes limpiar el historial de conversación.
+    </div>
+    
+
+    <button class="config-clear-btn" onclick="clearChat()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3v1H4v2h1v13a2 2 0 002 2h10a2 2 0 002-2V6h1V4h-5V3H9zm0 5h2v9H9V8zm4 0h2v9h-2V8z"/></svg>
+      Limpiar historial de chat
+    </button>
+
+    <button class="config-close-btn" onclick="closeConfig()">Cerrar</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  SAOCO PERFUMES — Chatbot Engine v4.0
+//  Google Sheets CSV (sin API key) + Tema día/noche
+// ══════════════════════════════════════════════
+https://docs.google.com/spreadsheets/d/1Nv0Yxc4H6kOZPszjv-52wFsZkO5D8094/edit?usp=drive_link&ouid=101055184124560230182&rtpof=true&sd=true
+
+const LS_STATE  = 'saoco_state';
+const LS_MSGS   = 'saoco_messages';
+const LS_THEME  = 'saoco_theme';
+
+// ID de la hoja pública
+const SHEETS_ID   = '1Nv0Yxc4H6kOZPszjv-52wFsZkO5D8094';
+const GID_FAQ     = '2042874289';
+const GID_PAGOS   = '840837208';
+const GID_IMAGEN_MAYORISTA = '1081209853';
+const GID_PROMOS = '909598539';
+const GID_CONFIG = '496931508';
+const GID_LOGO = '1701041658';
+
+
+const WA_MSG    = 'Hola, me interesa recibir asesoría de SAOCO PERFUMES.';
+
+//Variables globales
+let state    = 'menu';
+let faqData  = [];     // [{pregunta, respuesta}]
+let payData  = [];     // [{medio, detalle}]
+let promoData = []; // [{titulo, descripcion, imagen}]
+let mayoristaImg = '';
+let waNumber = '';
+let logoUrl = '';
+let botBusy  = false;
+let isLight  = false;
+
+
+// ── THEME ──────────────────────────────────────
+function initTheme() {
+  const saved = localStorage.getItem(LS_THEME);
+  isLight = saved === 'light';
+  applyTheme();
+}
+
+function applyTheme() {
+  if (isLight) {
+    document.documentElement.classList.add('light');
+    document.getElementById('theme-icon').textContent = '🌙';
+    document.getElementById('theme-label').textContent = 'Noche';
+  } else {
+    document.documentElement.classList.remove('light');
+    document.getElementById('theme-icon').textContent = '☀️';
+    document.getElementById('theme-label').textContent = 'Día';
+  }
+}
+
+function toggleTheme() {
+  isLight = !isLight;
+  localStorage.setItem(LS_THEME, isLight ? 'light' : 'dark');
+  applyTheme();
+}
+
+// ── GOOGLE SHEETS via gviz/tq (no API key, CORS-friendly) ──────────
+// Usa el endpoint de visualización de Google que siempre permite CORS
+// siempre que la hoja sea pública ("Cualquier persona con el enlace puede ver")
+
+function gvizUrl(gid) {
+  return `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&gid=${gid}`;
+}
+
+async function fetchGviz(gid) {
+  try {
+    const res = await fetch(gvizUrl(gid));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const raw = await res.text();
+    // Google devuelve: /*O_o*/\ngoogle.visualization.Query.setResponse({...});
+    // Extraemos el JSON entre el primer { y el último }
+    const json = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
+    const data = JSON.parse(json);
+    // data.table.rows → array de filas
+    // cada fila: { c: [{v: valor}, {v: valor}, ...] }
+    const rows = data.table.rows || [];
+    return rows.map(row =>
+      (row.c || []).map(cell => (cell && cell.v != null ? String(cell.v) : ''))
+    );
+  } catch (e) {
+    console.warn('gviz fetch failed gid=' + gid, e.message);
+    return null;
+  }
+}
+
+async function loadLogo() {
+  const logoRows = await fetchGviz(GID_LOGO);
+
+  if (logoRows && logoRows.length > 1) {
+    const imageId = (logoRows[1][0] || '').trim();
+
+    logoUrl = `https://lh3.googleusercontent.com/d/${imageId}`;
+
+    updateLogo();
+  }
+}
+
+function updateLogo() {
+  if (!logoUrl) return;
+
+  // Logo del header
+  document.querySelector('.bot-avatar-header').innerHTML = `
+    <img src="${logoUrl}" alt="Logo"
+         style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+    <span class="online-dot"></span>
+  `;
+
+  // Logo del typing indicator
+  const typingLogo = document.getElementById('typing-logo');
+
+  if (typingLogo) {
+    typingLogo.src = logoUrl;
+  }
+}
+
+async function loadSheetsData() {
+  const [faqRows, pagosRows, imageRows, promoRows, configRows] = await Promise.all([
+  fetchGviz(GID_FAQ),
+  fetchGviz(GID_PAGOS),
+  fetchGviz(GID_IMAGEN_MAYORISTA),
+  fetchGviz(GID_PROMOS),
+  fetchGviz(GID_CONFIG),
+]);
+
+  if (faqRows && faqRows.length > 0) {
+    faqData = faqRows
+      .slice(1)
+      .map(r => ({ pregunta: (r[0] || '').trim(), respuesta: (r[1] || '').trim() }))
+      .filter(f => f.pregunta && f.respuesta);
+  }
+
+  if (pagosRows && pagosRows.length > 0) {
+    payData = pagosRows
+      .slice(1)
+      .map(r => ({ medio: (r[0] || '').trim(), detalle: (r[1] || '').trim() }))
+      .filter(p => p.medio);
+  }
+
+  if (imageRows && imageRows.length > 0) {
+    const imageId = (imageRows[1][0] || '').trim();
+    mayoristaImg = `https://lh3.googleusercontent.com/d/${imageId}`;
+ 
+  }
+
+  if (promoRows && promoRows.length > 0) {
+  promoData = promoRows
+    .slice(1)
+    .map(r => ({
+      titulo: (r[0] || '').trim(),
+      descripcion: (r[1] || '').trim(),
+      imagen: (r[2] || '').trim()
+    }))
+    .filter(p => p.titulo);
+  }
+
+  if (configRows && configRows.length > 1) {
+    waNumber = (configRows[1][0] || '').trim();
+  }
+
+
+}
+
+// ── INIT ────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  initTheme();
+  autoResizeTextarea();
+
+  document.getElementById('user-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  // Cargar datos de Sheets en segundo plano
+  await Promise.all([
+    loadSheetsData(),
+    loadLogo()
+  ]);
+
+  setTimeout(async() => {
+    document.getElementById('loading-overlay').classList.add('hidden');
+    const msgs = loadMessages();
+    if (msgs.length === 0) {
+      setTimeout(() => showWelcome(), 400);
+    } else {
+      await restoreChat();
+    }
+  }, 1800);
+});
+
+// ── CONFIG PANEL ────────────────────────────────
+function openConfig() {
+  document.getElementById('config-panel').classList.add('open');
+}
+function closeConfig() {
+  document.getElementById('config-panel').classList.remove('open');
+}
+function closeConfigOnBg(e) {
+  if (e.target === document.getElementById('config-panel')) closeConfig();
+}
+
+function clearChat() {
+  localStorage.removeItem(LS_MSGS);
+  localStorage.removeItem(LS_STATE);
+  state = 'menu';
+  document.getElementById('messages').innerHTML = '';
+  closeConfig();
+  setTimeout(() => showWelcome(), 300);
+}
+
+// ── PERSISTENCE ─────────────────────────────────
+function loadMessages() {
+  try {
+    const msgs = JSON.parse(localStorage.getItem(LS_MSGS) || '[]');
+    state = localStorage.getItem(LS_STATE) || 'menu';
+    return msgs;
+  } catch(e) { return []; }
+}
+
+function saveMessages(msgs) {
+  try {
+    localStorage.setItem(LS_MSGS, JSON.stringify(msgs.slice(-80)));
+    localStorage.setItem(LS_STATE, state);
+  } catch(e) {}
+}
+
+async function restoreChat() {
+  const msgs = loadMessages();
+  let lastRole = null;
+
+  for (const m of msgs) {
+    const isFirst = (m.role !== lastRole);
+
+    await renderBubble(
+      m.role,
+      m.content,
+      m.time,
+      isFirst,
+      m.isImage || false,
+      false,
+      m.isWA || false
+    );
+
+    lastRole = m.role;
+  }
+
+  scrollBottom(false);
+  updateQuickReplies();
+}
+
+async function getWhatsAppURL() {
+
+  // volver a cargar datos actualizados
+  await loadSheetsData();
+
+  // dejar solo números
+  const cleanNumber = String(waNumber).replace(/\D/g, '');
+
+  return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(WA_MSG)}`;
+}
+
+// ── RENDER ──────────────────────────────────────
+async function renderBubble(role, content, time, isFirst, isImage, animate, isWA) {
+  const container = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = `msg-row ${role}${isFirst ? ' first-of-group' : ''}`;
+
+  let inner = '';
+  if (role === 'bot') inner += `<div class="bot-avatar-msg">
+  <img src="${logoUrl}" alt="Logo"
+       style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+</div>`;
+
+  if (isImage) {
+  inner += `
+    <div class="bubble bot">
+      <div class="bubble-image">
+        <img src="${content}" alt="SAOCO" loading="lazy">
+      </div>
+      <span class="timestamp">${time}</span>
+    </div>
+  `;
+} else if (isWA) {
+    const url = await getWhatsAppURL();
+    inner += `
+      <div class="bubble bot special">
+        <span>${formatContent(content)}</span><br>
+        <a class="wa-btn" href="${url}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Chatear con asesor
+        </a>
+        <span class="timestamp">${time}</span>
+      </div>`;
+  } else {
+    const special = role === 'bot' && (content.includes('━') || content.includes('💳') || content.includes('🌸 Descubre'));
+    inner += `
+      <div class="bubble ${role}${special ? ' special' : ''}">
+        <span>${formatContent(content)}</span>
+        <span class="timestamp">${time}</span>
+      </div>`;
+  }
+
+  row.innerHTML = inner;
+  if (!animate) row.style.animationDuration = '0s';
+  container.appendChild(row);
+  return row;
+}
+
+function formatContent(text) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>')
+    .replace(/\n/g, '<br>');
+}
+
+function nowTime() {
+  return new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ── TYPING ──────────────────────────────────────
+function showTyping() {
+  document.getElementById('typing-indicator').classList.add('visible');
+  scrollBottom();
+}
+function hideTyping() {
+  document.getElementById('typing-indicator').classList.remove('visible');
+}
+
+async function botSay(text, delay = 800, isImage = false, isWA = false) {
+  return new Promise(resolve => {
+    showTyping();
+    setTimeout(async() => {
+      hideTyping();
+      const msgs = loadMessages();
+      const last = msgs[msgs.length - 1];
+      const isFirst = !last || last.role !== 'bot';
+      const time = nowTime();
+      msgs.push({ role: 'bot', content: text, time, isImage, isWA });
+      saveMessages(msgs);
+      await renderBubble('bot', text, time, isFirst, isImage, true, isWA);
+      scrollBottom();
+      resolve();
+    }, delay);
+  });
+}
+
+async function botSaySequence(messages) {
+  for (const m of messages) {
+    await botSay(m.text, m.delay || 700, m.isImage || false, m.isWA || false);
+  }
+}
+
+function scrollBottom(smooth = true) {
+  const c = document.getElementById('messages');
+  setTimeout(() => c.scrollTo({ top: c.scrollHeight, behavior: smooth ? 'smooth' : 'instant' }), 50);
+}
+
+// ── QUICK REPLIES ───────────────────────────────
+function setQuickReplies(chips) {
+  document.getElementById('quick-replies').innerHTML =
+    chips.map(c => `<button class="chip" onclick="quickReply('${c}')">${c}</button>`).join('');
+}
+function clearQuickReplies() {
+  document.getElementById('quick-replies').innerHTML = '';
+}
+function updateQuickReplies() {
+  if (state === 'menu') setQuickReplies(['1','2','3','4','5']);
+  else if (state === 'faq') setQuickReplies(faqData.slice(0,8).map((_,i) => String(i+1)));
+  else if (state === 'mayorista') setQuickReplies(['1 — Sí','2 — No']);
+  else if (state === 'faq_respuesta') setQuickReplies(['1 — Menú','2 — Salir']);
+  else clearQuickReplies();
+}
+function quickReply(text) {
+  document.getElementById('user-input').value = text.split(' ')[0];
+  sendMessage();
+}
+
+// ── SEND / PROCESS ──────────────────────────────
+async function sendMessage() {
+  if (botBusy) return;
+  const input = document.getElementById('user-input');
+  const raw = input.value.trim();
+  if (!raw) return;
+  input.value = '';
+  input.style.height = '';
+
+  botBusy = true;
+  document.getElementById('send-btn').disabled = true;
+  clearQuickReplies();
+
+  const msgs = loadMessages();
+  const last = msgs[msgs.length - 1];
+  const isFirst = !last || last.role !== 'user';
+  const time = nowTime();
+  msgs.push({ role: 'user', content: raw, time });
+  saveMessages(msgs);
+  renderBubble('user', raw, time, isFirst, false, true);
+  scrollBottom();
+
+  await processInput(raw);
+
+  botBusy = false;
+  document.getElementById('send-btn').disabled = false;
+  updateQuickReplies();
+}
+
+function detectIntent(text) {
+  const t = text.toLowerCase().trim();
+  const menuTriggers = ['hola','menu','menú','volver','inicio','empezar','start','hey','buenas','buenos','hi','hello','regresar'];
+  const salirTriggers = ['adios','adiós','chao','bye','salir','hasta luego','hasta pronto'];
+  if (menuTriggers.some(k => t === k || t.startsWith(k + ' '))) return 'MENU';
+  if (salirTriggers.some(k => t.includes(k))) return 'SALIR';
+  return 'INPUT';
+}
+
+async function processInput(raw) {
+  const intent = detectIntent(raw);
+  if (intent === 'MENU')  { await showMenu(); return; }
+  if (intent === 'SALIR') { await showGoodbye(); return; }
+
+  const num = parseInt(raw.trim());
+  const txt = raw.toLowerCase().trim();
+
+  switch(state) {
+    case 'menu':         await handleMenu(num, txt); break;
+    case 'faq':          await handleFAQ(num); break;
+    case 'faq_respuesta':
+      if (num === 1) await showMenu();
+      else if (num === 2) await showGoodbye();
+      else await botSay('Por favor responde:\n1 para volver al menú\n2 para salir.', 500);
+      break;
+    case 'mayorista':    await handleMayorista(num, txt); break;
+    case 'finalizado':   await botSay('¡Hola de nuevo! 👋 Escribe "menú" para empezar.', 600); break;
+    default:             await showMenu();
+  }
+}
+
+// ── WELCOME / MENU ──────────────────────────────
+async function showWelcome() {
+  state = 'menu';
+  await botSaySequence([
+    { text: '¡Hola! 👋\n\nBienvenido a SAOCO PERFUMES 🌸', delay: 600 },
+    { text: buildMainMenu(), delay: 900 },
+  ]);
+  updateQuickReplies();
+  saveMessages(loadMessages());
+}
+
+async function showMenu() {
+  state = 'menu';
+  localStorage.setItem(LS_STATE, state);
+  await botSay(buildMainMenu(), 700);
+  updateQuickReplies();
+}
+
+function buildMainMenu() {
+  return `¿En qué podemos ayudarte?\n\n1. Preguntas frecuentes\n2. Clientes mayoristas\n3. Promociones\n4. Medios de pago\n5. Comunicarme con un asesor\n\nSelecciona una opción del 1 al 5.`;
+}
+
+async function handleMenu(num, txt) {
+  switch(num) {
+    case 1: await showFAQ(); break;
+    case 2: await showMayorista(); break;
+    case 3: await showPromociones(); break;
+    case 4: await showPayments(); break;
+    case 5: await showAsesor(); break;
+    default: await botSay('Por favor selecciona una opción del 1 al 5. 🌸', 500);
+  }
+}
+
+// ── OPCIÓN 1: FAQ ────────────────────────────────
+async function showFAQ() {
+  // Asegurar que los datos estén cargados
+  await loadSheetsData();
+  state = 'faq';
+  localStorage.setItem(LS_STATE, state);
+
+  if (faqData.length === 0) {
+    await botSay('😔 No hay preguntas disponibles en este momento. Vuelve al menú.', 700);
+    state = 'faq_respuesta';
+    return;
+  }
+
+  const list = faqData.map((f, i) => `${i+1}. ${f.pregunta}`).join('\n');
+  await botSay(`❓ Preguntas frecuentes:\n\n${list}\n\nResponde con el número de la pregunta.`, 800);
+}
+
+async function handleFAQ(num) {
+  if (num >= 1 && num <= faqData.length) {
+    const f = faqData[num - 1];
+    state = 'faq_respuesta';
+    localStorage.setItem(LS_STATE, state);
+    await botSaySequence([
+      { text: `❓ ${f.pregunta}\n\n${f.respuesta}`, delay: 700 },
+      { text: '━━━━━━━━━━━━━━━\n1. Volver al menú\n2. Salir', delay: 500 },
+    ]);
+  } else {
+    await botSay(`Por favor responde con un número del 1 al ${faqData.length}.`, 500);
+  }
+}
+
+
+// ── OPCIÓN 2: MAYORISTAS ─────────────────────────
+async function showMayorista() {
+  state = 'mayorista';
+  localStorage.setItem(LS_STATE, state);
+  const sequence = [];
+
+if (mayoristaImg) {
+  sequence.push({
+    text: mayoristaImg,
+    delay: 600,
+    isImage: true
+  });
+}
+
+sequence.push({
+  text: '🤝 Clientes Mayoristas SAOCO PERFUMES\n\n¿Quieres hablar con un asesor?\n\n1. Sí\n2. No',
+  delay: 700
+});
+
+await botSaySequence(sequence);
+}
+
+async function handleMayorista(num, txt) {
+  const yes = num === 1 || txt === 'si' || txt === 'sí' || txt === 's';
+  const no  = num === 2 || txt === 'no' || txt === 'n';
+  state = 'faq_respuesta';
+  localStorage.setItem(LS_STATE, state);
+  if (yes) {
+    await botSaySequence([
+      { text: '✅ Perfecto. Te conectamos con nuestro asesor mayorista.', delay: 700 },
+      { text: 'Toca el botón para abrir WhatsApp:', delay: 600, isWA: true },
+      { text: '━━━━━━━━━━━━━━━\n1. Volver al menú\n2. Salir', delay: 400 },
+    ]);
+  } else if (no) {
+    await botSaySequence([
+      { text: '😊 Entendido.', delay: 700 },
+      { text: '━━━━━━━━━━━━━━━\n1. Volver al menú\n2. Salir', delay: 400 },
+    ]);
+  } else {
+    await botSay('Por favor responde:\n1 para Sí\n2 para No.', 500);
+  }
+}
+
+// ── OPCIÓN 4: PROMOCIONES ────────────────────────
+async function showPromociones() {
+  await loadSheetsData();
+
+  state = 'faq_respuesta';
+  localStorage.setItem(LS_STATE, state);
+
+  if (promoData.length === 0) {
+    await botSaySequence([
+      {
+        text: '😔 No hay promociones disponibles en este momento.',
+        delay: 700
+      },
+      {
+        text: '━━━━━━━━━━━━━━━\n1. Volver al menú\n2. Salir',
+        delay: 500
+      }
+    ]);
+    return;
+  }
+  const sequence = [];
+  promoData.forEach(promo => {
+
+  // Título
+  sequence.push({
+    text: `🎁 ${promo.titulo}`,
+    delay: 600
+  });
+
+  // Imagen (si existe)
+  if (promo.imagen) {
+    sequence.push({
+      text: `https://lh3.googleusercontent.com/d/${promo.imagen}`,
+      delay: 300,
+      isImage: true
+    });
+  }
+
+  // Descripción
+  sequence.push({
+    text: promo.descripcion,
+    delay: 400
+  });
+
+});
+
+  sequence.push({
+    text: '━━━━━━━━━━━━━━━\n1. Volver al menú\n2. Salir',
+    delay: 500
+  });
+
+  await botSaySequence(sequence);
+}
+
+// ── OPCIÓN 5: MEDIOS DE PAGO ─────────────────────
+async function showPayments() {
+  await loadSheetsData();
+  state = 'faq_respuesta';
+  localStorage.setItem(LS_STATE, state);
+
+  let txt = '💳 Medios de Pago SAOCO PERFUMES\n\n';
+  if (payData.length === 0) {
+    txt += 'No hay medios de pago configurados.\nContacta a un asesor para más información.';
+  } else {
+    txt += payData.map(p => `💳 ${p.medio}\n${p.detalle}`).join('\n\n');
+  }
+
+  await botSaySequence([
+    { text: txt, delay: 700 },
+    { text: '━━━━━━━━━━━━━━━\n1. Volver al menú\n2. Salir', delay: 500 },
+  ]);
+}
+
+// ── OPCIÓN 5: ASESOR ─────────────────────────────
+async function showAsesor() {
+  state = 'faq_respuesta';
+  localStorage.setItem(LS_STATE, state);
+  await botSaySequence([
+    { text: '💬 Con gusto te conectamos con uno de nuestros asesores.', delay: 600 },
+    { text: 'Toca el botón para abrir WhatsApp:', delay: 120, isWA: true },
+    { text: '━━━━━━━━━━━━━━━\n1. Volver al menú\n2. Salir', delay: 400 },
+  ]);
+}
+
+// ── GOODBYE ──────────────────────────────────────
+async function showGoodbye() {
+  state = 'finalizado';
+  localStorage.setItem(LS_STATE, state);
+  await botSay('👋 Gracias por comunicarte con SAOCO PERFUMES.\n\n¡Te esperamos pronto! 🌸', 700);
+  clearQuickReplies();
+}
+
+// ── AUTO-RESIZE ───────────────────────────────────
+function autoResizeTextarea() {
+  const ta = document.getElementById('user-input');
+  ta.addEventListener('input', () => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 100) + 'px';
+  });
+}
+</script>
+
+</body>
+</html>
